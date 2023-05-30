@@ -1023,6 +1023,10 @@ impl VirtMem {
         self.borrow_mut().map(addr, size, perms)
     }
 
+    pub fn map_1to1(&mut self, addr: u64, size: usize, perms: av::MemPerms) -> Result<()> {
+        self.borrow_mut().map_1to1(addr, size, perms)
+    }
+
     /// Wrapper for
     /// [`VirtMemAllocator::map_privileged`](crate::memory::VirtMemAllocator::map_privileged)
     /// borrowing the address space currently in use.

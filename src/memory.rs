@@ -1437,6 +1437,80 @@ impl PageTableManager {
         Ok(())
     }
 
+    /// Map the given address in the hypervisor's virtual address space into the same address in
+    /// the virtual machine's address space.
+    pub fn map_1to1(
+        &mut self,
+        addr: u64,
+        size: usize,
+        perms: av::MemPerms,
+        privileged: bool,
+    ) -> Result<()> {
+        // Makes sure the range's start address is page-aligned.
+        if addr & (VIRT_PAGE_SIZE as u64 - 1) != 0 {
+            return Err(MemoryError::UnalignedAddress(addr))?;
+        }
+        // Makes sure the range's size is page-aligned.
+        if size & (VIRT_PAGE_SIZE - 1) != 0 {
+            return Err(MemoryError::UnalignedSize(size))?;
+        }
+        // Computes the start and end of the address range.
+        let range_start = addr;
+        let range_end = round_virt_page!(addr
+            .checked_add(size as u64)
+            .ok_or(MemoryError::Overflow(addr, size))?);
+        // Iterates over the address of each page boundary and adds them to the page table.
+        for addr in (range_start..range_end).step_by(VIRT_PAGE_SIZE) {
+            let pud_idx = (addr >> 39 & 0x1ff) as usize;
+            // Adds a new PUD if one doesn't already exist at index `pud_idx`.
+            if let Entry::Vacant(e) = self.pgd.objects.entry(pud_idx) {
+                let pud = PageUpperDirectory::new(self.slab.alloc()?);
+                Self::add_entry(pud.descriptor.0, pud_idx, &mut self.pgd.entries)?;
+                e.insert(pud);
+            }
+            // We've made sure that an entry exists here, so it's safe to unwrap.
+            let pud = self.pgd.objects.get_mut(&pud_idx).unwrap();
+
+            let pmd_idx = (addr >> 30 & 0x1ff) as usize;
+            // Adds a new PMD if one doesn't already exist at index `pmd_idx`.
+            if let Entry::Vacant(e) = pud.objects.entry(pmd_idx) {
+                let pmd = PageMiddleDirectory::new(self.slab.alloc()?);
+                Self::add_entry(pmd.descriptor.0, pmd_idx, &mut pud.entries)?;
+                e.insert(pmd);
+            }
+            // We've made sure that an entry exists here, so it's safe to unwrap.
+            let pmd = pud.objects.get_mut(&pmd_idx).unwrap();
+
+            let pt_idx = (addr >> 21 & 0x1ff) as usize;
+            // Adds a new PT if one doesn't already exist at index `pt_idx`.
+            if let Entry::Vacant(e) = pmd.objects.entry(pt_idx) {
+                let pt = PageTable::new(self.slab.alloc()?);
+                Self::add_entry(pt.descriptor.0, pt_idx, &mut pmd.entries)?;
+                e.insert(Rc::new(RefCell::new(pt)));
+            }
+            // We've made sure that an entry exists here, so it's safe to unwrap.
+            let pt_cell = pmd.objects.get_mut(&pt_idx).unwrap();
+
+            let page_idx = (addr >> 12 & 0x1ff) as usize;
+            // Adds a new page entry if one doesn't already exist at index `page_idx`.
+            let pt_mut = &mut *pt_cell.borrow_mut();
+            let pt_entries = &mut pt_mut.entries;
+            let pt_objects = &mut pt_mut.objects;
+            if let Entry::Vacant(e) = pt_objects.entry(page_idx) {
+                let mut obj = self.slab.alloc()?;
+                obj.host_addr = addr as *const u8;
+                let page = Page::new(obj, perms, privileged, Rc::downgrade(pt_cell));
+                Self::add_entry(page.descriptor_in_use.0, page_idx, pt_entries)?;
+                let page_ref = Rc::new(RefCell::new(page));
+                e.insert(page_ref.clone());
+                self.allocs.insert(addr, page_ref);
+            } else {
+                return Err(MemoryError::AlreadyMapped(addr))?;
+            }
+        }
+        Ok(())
+    }
+
     /// Unmaps the virtual address range of size `size` and starting at address `addr`.
     pub fn unmap(&mut self, addr: u64, size: usize) -> Result<()> {
         // Makes sure the range's start address is page-aligned.
@@ -1908,6 +1982,18 @@ impl VirtMemAllocator {
         match addr >> 0x30 {
             0x0000 => self.lower_table.map(addr, size, perms, false),
             0xffff => self.upper_table.map(addr, size, perms, false),
+            _ => Err(MemoryError::InvalidAddress(addr))?,
+        }
+    }
+
+    /// Maps a non-privileged virtual address range of size `size`, starting at address `addr` and
+    /// with permissions `perms`.
+    #[inline]
+    pub fn map_1to1(&mut self, addr: u64, size: usize, perms: av::MemPerms) -> Result<()> {
+        // Determines which page table should be used based on the region the address is from.
+        match addr >> 0x30 {
+            0x0000 => self.lower_table.map_1to1(addr, size, perms, false),
+            0xffff => self.upper_table.map_1to1(addr, size, perms, false),
             _ => Err(MemoryError::InvalidAddress(addr))?,
         }
     }
