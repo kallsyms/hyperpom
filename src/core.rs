@@ -1615,7 +1615,7 @@ impl<L: Loader + Loader<LD = LD> + Loader<GD = GD>, LD: Clone, GD: Clone> Execut
             // Sets the return address to an unmapped address in order to detect when the
             // program returns. Not sure if it's a good idea to have the fuzzer do it
             // instead of the user, but we'll see.
-            self.vcpu.set_reg(av::Reg::LR, END_ADDR)?;
+            //self.vcpu.set_reg(av::Reg::LR, END_ADDR)?;
             // Executes the testcase.
             let exec_ret = self.vcpu_run()?;
             // Runs our post-exec hook and returns the execution result.
