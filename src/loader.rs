@@ -1314,12 +1314,12 @@ pub trait Loader: Clone + Send {
     // Exception handlers
 
     /// Custom handler for "Synchronous Exception from Current EL with SP0".
-    fn exception_handler_sync_curel_sp0<LD, GD>(
+    fn exception_handler_sync_curel_sp0(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "Synchronous Exception from Current EL with SP0".to_string(),
@@ -1327,12 +1327,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "IRQ Exception from Current EL with SP0".
-    fn exception_handler_irq_curel_sp0<LD, GD>(
+    fn exception_handler_irq_curel_sp0(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "IRQ Exception from Current EL with SP0".to_string(),
@@ -1340,12 +1340,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "FIQ Exception from Current EL with SP0".
-    fn exception_handler_fiq_curel_sp0<LD, GD>(
+    fn exception_handler_fiq_curel_sp0(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "FIQ Exception from Current EL with SP0".to_string(),
@@ -1353,12 +1353,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "SError Exception from Current EL with SP0".
-    fn exception_handler_serror_curel_sp0<LD, GD>(
+    fn exception_handler_serror_curel_sp0(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "SError Exception from Current EL with SP0".to_string(),
@@ -1366,12 +1366,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "Synchronous Exception from Current EL with SPX".
-    fn exception_handler_sync_curel_spx<LD, GD>(
+    fn exception_handler_sync_curel_spx(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "Synchronous Exception from Current EL with SPX".to_string(),
@@ -1379,12 +1379,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "IRQ Exception from Current EL with SPX".
-    fn exception_handler_irq_curel_spx<LD, GD>(
+    fn exception_handler_irq_curel_spx(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "IRQ Exception from Current EL with SPX".to_string(),
@@ -1392,12 +1392,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "FIQ Exception from Current EL with SPX".
-    fn exception_handler_fiq_curel_spx<LD, GD>(
+    fn exception_handler_fiq_curel_spx(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "FIQ Exception from Current EL with SPX".to_string(),
@@ -1405,12 +1405,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "SError Exception from Current EL with SPX".
-    fn exception_handler_serror_curel_spx<LD, GD>(
+    fn exception_handler_serror_curel_spx(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "SError Exception from Current EL with SPX".to_string(),
@@ -1418,12 +1418,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "Synchronous Exception from Lower EL using AArch64".
-    fn exception_handler_sync_lowerel_aarch64<LD, GD>(
+    fn exception_handler_sync_lowerel_aarch64(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "Synchronous Exception from Lower EL using AArch64".to_string(),
@@ -1431,12 +1431,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "IRQ Exception from Lower EL using AArch64".
-    fn exception_handler_irq_lowerel_aarch64<LD, GD>(
+    fn exception_handler_irq_lowerel_aarch64(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "IRQ Exception from Lower EL using AArch64".to_string(),
@@ -1444,12 +1444,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "FIQ Exception from Lower EL using AArch64".
-    fn exception_handler_fiq_lowerel_aarch64<LD, GD>(
+    fn exception_handler_fiq_lowerel_aarch64(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "FIQ Exception from Lower EL using AArch64".to_string(),
@@ -1457,12 +1457,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "SError Exception from Lower EL using AArch64".
-    fn exception_handler_serror_lowerel_aarch64<LD, GD>(
+    fn exception_handler_serror_lowerel_aarch64(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "SError Exception from Lower EL using AArch64".to_string(),
@@ -1470,12 +1470,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "Synchronous Exception from Lower EL using AArch32".
-    fn exception_handler_sync_lowerel_aarch32<LD, GD>(
+    fn exception_handler_sync_lowerel_aarch32(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "Synchronous Exception from Lower EL using AArch32".to_string(),
@@ -1483,12 +1483,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "IRQ Exception from Lower EL using AArch32".
-    fn exception_handler_irq_lowerel_aarch32<LD, GD>(
+    fn exception_handler_irq_lowerel_aarch32(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "IRQ Exception from Lower EL using AArch32".to_string(),
@@ -1496,12 +1496,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "FIQ Exception from Lower EL using AArch32".
-    fn exception_handler_fiq_lowerel_aarch32<LD, GD>(
+    fn exception_handler_fiq_lowerel_aarch32(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "FIQ Exception from Lower EL using AArch32".to_string(),
@@ -1509,12 +1509,12 @@ pub trait Loader: Clone + Send {
     }
 
     /// Custom handler for "SySError Exception from Lower EL using AArch32".
-    fn exception_handler_serror_lowerel_aarch32<LD, GD>(
+    fn exception_handler_serror_lowerel_aarch32(
         &self,
         _vcpu: &mut av::Vcpu,
         _vma: &mut VirtMemAllocator,
-        _ldata: &mut LD,
-        _gdata: &RwLock<GD>,
+        _ldata: &mut Self::LD,
+        _gdata: &RwLock<Self::GD>,
     ) -> Result<ExitKind> {
         Ok(ExitKind::Crash(
             "SError Exception from Lower EL using AArch32".to_string(),
