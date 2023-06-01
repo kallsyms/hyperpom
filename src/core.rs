@@ -1402,7 +1402,7 @@ impl<L: Loader + Loader<LD = LD> + Loader<GD = GD>, LD: Clone, GD: Clone> Execut
         // TODO: this implementation takes up a lot of memory, and it might be better to just
         // remove and reapply coverage/backtrace hooks when necessary.
         // Should be investigated later.
-        *self.vma.backtrace.borrow_mut() = self.vma.covtrace.borrow().clone();
+        //*self.vma.backtrace.borrow_mut() = self.vma.covtrace.borrow().clone();
         // Clones the current hooks into another object to separate hooks applied to `vma_snapshot`
         // and `vma_backtrace`.
         let mut hooks_backtrace = self.hooks.clone();
@@ -1424,7 +1424,7 @@ impl<L: Loader + Loader<LD = LD> + Loader<GD = GD>, LD: Clone, GD: Clone> Execut
         }
         // Writes coverage and tracing hooks in the regular virtual address space and its snapshot.
         self.hooks.apply(&mut self.vma.covtrace.borrow_mut())?;
-        *self.vma.covtrace_snapshot.borrow_mut() = self.vma.covtrace.borrow().clone();
+        //*self.vma.covtrace_snapshot.borrow_mut() = self.vma.covtrace.borrow().clone();
         // Adds backtrace hooks to both hooks objects, because `hooks_backtrace` will be discarded
         // at the end of the function and we need to have the hooks registered in the main object
         // so they can be known by the fuzzer and handled properly.
