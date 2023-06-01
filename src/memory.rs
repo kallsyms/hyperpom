@@ -1459,6 +1459,25 @@ impl PageTableManager {
         let range_end = round_virt_page!(addr
             .checked_add(size as u64)
             .ok_or(MemoryError::Overflow(addr, size))?);
+
+        // Manually construct and map the physical memory for the mapping.
+        // N.B. done once for the whole mapping instead of per-page to keep the number of mappings down.
+        // Expanded from hv_unsafe_call in applevisor
+        {
+            let ret = unsafe {
+                applevisor_sys::hv_vm_map(
+                    addr as _,
+                    addr,
+                    size,
+                    Into::<applevisor_sys::hv_memory_flags_t>::into(av::MemPerms::RWX),
+                )
+            };
+            match ret {
+                x if x == applevisor_sys::hv_error_t::HV_SUCCESS as i32 => Ok(()),
+                code => Err(av::HypervisorError::from(code)),
+            }
+        }?;
+
         // Iterates over the address of each page boundary and adds them to the page table.
         for addr in (range_start..range_end).step_by(VIRT_PAGE_SIZE) {
             let pud_idx = (addr >> 39 & 0x1ff) as usize;
@@ -1497,9 +1516,17 @@ impl PageTableManager {
             let pt_entries = &mut pt_mut.entries;
             let pt_objects = &mut pt_mut.objects;
             if let Entry::Vacant(e) = pt_objects.entry(page_idx) {
-                let mut obj = self.slab.alloc()?;
-                obj.host_addr = addr as *const u8;
-                let page = Page::new(obj, perms, privileged, Rc::downgrade(pt_cell));
+                let page = Page::new(
+                    SlabObject {
+                        host_addr: addr as _,
+                        guest_addr: addr,
+                        object_size: VIRT_PAGE_SIZE,
+                        parent: None,
+                    },
+                    perms,
+                    privileged,
+                    Rc::downgrade(pt_cell),
+                );
                 Self::add_entry(page.descriptor_in_use.0, page_idx, pt_entries)?;
                 let page_ref = Rc::new(RefCell::new(page));
                 e.insert(page_ref.clone());
