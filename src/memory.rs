@@ -1939,7 +1939,6 @@ impl VirtMemAllocator {
         //  - 0b11RWiiii -> Normal memory, Outer Write-Back Non-transient (Allocate / Allocate)
         //  - 0boooo11RW -> Normal memory, Inner Write-Back Non-transient (Allocate / Allocate)
         vcpu.set_sys_reg(av::SysReg::MAIR_EL1, 0xff)?;
-        vcpu.set_sys_reg(av::SysReg::MAIR_EL1, 0x44)?;
         // TCR_EL1
         //  - T0SZ: Size offset of the memory region addressed by TTBR0_EL1.
         //      16 -> Lower address space size = 2^48
@@ -1949,6 +1948,8 @@ impl VirtMemAllocator {
         //      16 -> Upper address space size = 2^48
         //  - TG1: Granule size for TTBR1_EL1.
         //      2  -> 4KB
+        //  - IPS: Intermediate Physical Address Size.
+        //      0b110 -> 52 bit (4PB) - as big as it can be
         //  - HA: Hardware Access flag update in stage 1 translations from EL0 and EL1.
         //      1  -> Stage 1 Access flag update enabled.
         //  - HD: Hardware management of dirty state in stage 1 translations from EL0 and EL1.
@@ -1956,7 +1957,7 @@ impl VirtMemAllocator {
         //            also set to 1.
         vcpu.set_sys_reg(
             av::SysReg::TCR_EL1,
-            0x10 | (0x10 << 16) | (0b10 << 30) | (1 << 39) | (1 << 40),
+            0x10 | (0x10 << 16) | (0b10 << 30) | (0b110 << 32) | (1 << 39) | (1 << 40),
         )?;
         // TTBRX_EL1
         //  - BADDR: stage 1 translation table base address
