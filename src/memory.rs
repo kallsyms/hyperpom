@@ -1345,6 +1345,7 @@ pub struct PageTableManager {
     pub(crate) slab: SlabAllocator,
     pub(crate) pgd: PageGlobalDirectory,
     pub(crate) allocs: BTreeMap<u64, Rc<RefCell<Page>>>,
+    one_to_one_last: u64,
 }
 
 impl PageTableManager {
@@ -1356,6 +1357,7 @@ impl PageTableManager {
             slab,
             pgd,
             allocs: BTreeMap::new(),
+            one_to_one_last: 0x1_0000_0000,
         })
     }
 
@@ -1463,11 +1465,13 @@ impl PageTableManager {
         // Manually construct and map the physical memory for the mapping.
         // N.B. done once for the whole mapping instead of per-page to keep the number of mappings down.
         // Expanded from hv_unsafe_call in applevisor
+        let guest_paddr = self.one_to_one_last;
+        self.one_to_one_last += size as u64;
         {
             let ret = unsafe {
                 applevisor_sys::hv_vm_map(
                     addr as _,
-                    addr,
+                    guest_paddr,
                     size,
                     Into::<applevisor_sys::hv_memory_flags_t>::into(av::MemPerms::RWX),
                 )
@@ -1515,25 +1519,22 @@ impl PageTableManager {
             let pt_mut = &mut *pt_cell.borrow_mut();
             let pt_entries = &mut pt_mut.entries;
             let pt_objects = &mut pt_mut.objects;
-            if let Entry::Vacant(e) = pt_objects.entry(page_idx) {
-                let page = Page::new(
-                    SlabObject {
-                        host_addr: addr as _,
-                        guest_addr: addr,
-                        object_size: VIRT_PAGE_SIZE,
-                        parent: None,
-                    },
-                    perms,
-                    privileged,
-                    Rc::downgrade(pt_cell),
-                );
-                Self::add_entry(page.descriptor_in_use.0, page_idx, pt_entries)?;
-                let page_ref = Rc::new(RefCell::new(page));
-                e.insert(page_ref.clone());
-                self.allocs.insert(addr, page_ref);
-            } else {
-                return Err(MemoryError::AlreadyMapped(addr))?;
-            }
+            // N.B. Not checking for already mapped
+            let page = Page::new(
+                SlabObject {
+                    host_addr: addr as _,
+                    guest_addr: guest_paddr + (addr - range_start) as u64,
+                    object_size: VIRT_PAGE_SIZE,
+                    parent: None,
+                },
+                perms,
+                privileged,
+                Rc::downgrade(pt_cell),
+            );
+            Self::add_entry(page.descriptor_in_use.0, page_idx, pt_entries)?;
+            let page_ref = Rc::new(RefCell::new(page));
+            pt_objects.insert(page_idx, page_ref.clone());
+            self.allocs.insert(addr, page_ref);
         }
         Ok(())
     }
