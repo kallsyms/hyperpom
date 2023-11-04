@@ -412,7 +412,7 @@ impl<LD: Clone, GD: Clone> Hooks<LD, GD> {
             HookType::Unknown(u) => {
                 if u == 50291 {
                     //TODO: THIS IS BAD REMOVE THIS
-                    vcpu.set_reg(av::Reg::PC, vcpu.get_reg(av::Reg::PC).unwrap() + 4);
+                    vcpu.set_reg(av::Reg::PC, vcpu.get_reg(av::Reg::PC).unwrap() + 4).unwrap();
                     Ok(ExitKind::Continue)
                 } else {
                     Err(HookError::InvalidHookType(u))?
